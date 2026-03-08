@@ -43,3 +43,13 @@ GROUP BY
     ji.dte_start_time,
     ji.dte_end_time
 """
+
+WF_LOGS_QUERY = """
+SELECT
+    int_job_instance_log_id,
+    int_job_instance_id,
+    str_log,
+    dte_logged
+FROM Job_Instance_Log
+WHERE str_log IS NOT NULL
+"""

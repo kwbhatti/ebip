@@ -1,15 +1,15 @@
 from datetime import datetime
 import uuid
-from db.sql_server import load_execution_data
+from db.sql_server import load_wf_exe_data
 from db.sqlite_store import save_results
 from features.workflow_execution.wf_exe_features import build_features, extract_feature_matrix
 from ml.workflow_execution.wf_exe_anomaly_model import scale_features
 from ml.workflow_execution.wf_exe_anomaly_model import score_executions
 from ml.workflow_execution.wf_exe_explanations import generate_anomaly_reasons
 
-def run_execution_pipeline():
+def run_wf_exe_pipeline():
 
-    df = load_execution_data()
+    df = load_wf_exe_data()
 
     df = build_features(df)
 
