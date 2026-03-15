@@ -1,6 +1,6 @@
 def clean_log_messages(df):
 
-    df["clean_log"] = df["str_log"]
+    df["clean_log"] = df["log_text"]
 
     # remove leading timestamps
     df["clean_log"] = df["clean_log"].str.replace(
@@ -22,8 +22,13 @@ def clean_log_messages(df):
 def group_logs_by_execution(df):
 
     grouped = (
-        df.groupby("int_job_instance_id")["clean_log"]
-        .apply(list)
+        df.groupby("job_instance_id")
+        .agg({
+            "clean_log": list,
+            "job_id": "first",
+            "job_name": "first",
+            "job_description": "first",
+        })
         .reset_index()
     )
 

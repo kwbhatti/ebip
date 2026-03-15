@@ -46,10 +46,14 @@ GROUP BY
 
 WF_LOGS_QUERY = """
 SELECT
-    int_job_instance_log_id,
-    int_job_instance_id,
-    str_log,
-    dte_logged
-FROM Job_Instance_Log
-WHERE str_log IS NOT NULL
+    jil.int_job_instance_id AS job_instance_id,
+    jil.int_job_id AS job_id,
+    j.str_name AS job_name,
+    j.str_description AS job_description,
+    jil.str_log AS log_text,
+    jil.dte_logged AS date
+FROM Job_Instance_Log jil
+JOIN Jobs j
+    ON jil.int_job_id = j.int_job_id
+WHERE jil.str_log IS NOT NULL
 """

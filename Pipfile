@@ -8,6 +8,8 @@ pyodbc = "*"
 pandas = "*"
 scikit-learn = "*"
 sentence-transformers = "*"
+hdbscan = "*"
+boto3 = "*"
 
 [dev-packages]
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 import uuid
 from db.sql_server import load_wf_exe_data
-from db.sqlite_store import save_results
+from db.sqlite_store import save_wf_exe_results
 from features.workflow_execution.wf_exe_features import build_features, extract_feature_matrix
 from ml.workflow_execution.wf_exe_anomaly_model import scale_features
 from ml.workflow_execution.wf_exe_anomaly_model import score_executions
@@ -27,6 +27,6 @@ def run_wf_exe_pipeline():
 
     df = generate_anomaly_reasons(df)
 
-    save_results(df)
+    save_wf_exe_results(df)
 
     return df
