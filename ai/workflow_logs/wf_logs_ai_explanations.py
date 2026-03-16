@@ -3,37 +3,61 @@ import json
 
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
-# will not be using this for now since it is not that great
-def build_ai_prompt(job_name, job_description, cluster_summary_df, anomalies_df):
+import json
 
-    cluster_info = "\n".join(
-        f"Cluster {row.cluster_id} → {row.cluster_size} executions → {row.cluster_theme}"
-        for _, row in cluster_summary_df.iterrows()
-    )
+MAX_EXECUTIONS = 10
+MAX_LOG_CHARS = 4000
 
-    anomaly_examples = "\n\n".join(
-        anomalies_df["execution_log_text"].head(20).tolist()
-    )
+
+def build_ai_prompt(anomaly_group_df):
+
+    executions = []
+
+    subset = anomaly_group_df.head(MAX_EXECUTIONS)
+
+    for _, row in subset.iterrows():
+
+        executions.append({
+            "execution_id": str(row["job_instance_id"]),
+            "log_text": row["execution_log_text"][:MAX_LOG_CHARS]
+        })
+
+    executions_json = json.dumps(executions, indent=2)
 
     prompt = f"""
-    Workflow: {job_name}
-    Description: {job_description}
+    You are analyzing system execution logs that show unusual behavior.
 
-    Cluster Distribution and Themes:
-    {cluster_info}
+    Identify the pattern shared by these executions and evaluate each execution.
 
-    Anomalous Executions:
-    {anomaly_examples}
+    RULES:
+    - Return JSON only.
+    - Do not include explanations.
+    - pattern_summary <= 12 words
+    - possible_cause <= 8 words
+    - risk_score 0-100
+    - confidence 0-100
 
-    Explain:
-    1. What anomaly behavior appears to be happening
-    2. Possible operational causes
-    3. Whether this indicates instability or expected system behavior
+    JSON FORMAT:
+
+    {{
+    "pattern_summary": "",
+    "risk_score": 0,
+    "rows": [
+        {{
+        "execution_id": "",
+        "possible_cause": "",
+        "concerning": true,
+        "confidence": 0
+        }}
+    ]
+    }}
+
+    Executions:
+    {executions_json}
     """
 
     return prompt
 
-# will not be using this for now since it is not that great
 def analyze_clusters(prompt):
 
     body = json.dumps({

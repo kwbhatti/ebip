@@ -47,6 +47,22 @@ def load_wf_logs_embeddings():
     df["embedding"] = df["embedding"].apply(json.loads)
     return df
 
+def save_log_anomalies(df):
+    df_copy = df.copy(deep=True)
+
+    df_copy["clean_log"] = df_copy["clean_log"].apply(json.dumps)
+    df_copy["embedding"] = df_copy["embedding"].apply(json.dumps)
+    conn = sqlite3.connect(SQLITE_DB_PATH)
+    df_copy.to_sql(
+        "wf_logs_anomalies",
+        conn,
+        if_exists="append",
+        index=False
+    )
+
+    conn.close()
+
+
 def save_wf_logs_clusters(df):
 
     df_copy = df.copy(deep=True)
