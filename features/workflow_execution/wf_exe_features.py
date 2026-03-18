@@ -5,4 +5,4 @@ def build_features(df):
     return df
 
 def extract_feature_matrix(df):
-    return df.drop(columns=["int_job_instance_id"])
+    return df.drop(columns=["job_instance_id"])

@@ -1,0 +1,41 @@
+You are analyzing workflow execution logs that show unusual behavior.
+
+The executions belong to the same workflow job.
+
+Job Name:
+{job_name}
+
+Job Description:
+{job_description}
+
+These executions were grouped together because their logs show a rare or unusual pattern.
+
+Your task is to identify the likely pattern and briefly evaluate each execution.
+
+IMPORTANT RULES:
+- Return JSON only.
+- Do not include explanations.
+- Do not include markdown.
+- pattern_summary must be ≤ 12 words.
+- possible_cause must be ≤ 8 words.
+- risk_score must be 0–100.
+- confidence must be 0–100.
+
+JSON FORMAT:
+
+{
+  "pattern_summary": "",
+  "risk_score": 0,
+  "rows": [
+    {
+      "execution_id": "",
+      "possible_cause": "",
+      "concerning": true,
+      "confidence": 0
+    }
+  ]
+}
+
+Executions:
+
+{executions}

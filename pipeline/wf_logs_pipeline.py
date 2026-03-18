@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from db.sql_server import load_wf_logs_data
 from features.workflow_logs.wf_logs_features import clean_log_messages, group_logs_by_execution, build_execution_log_text
-from ml.workflow_logs.wf_logs_anomaly_model import generate_embeddings, cluster_logs, group_anomalies
+from ml.workflow_logs.wf_logs_anomaly_model import generate_embeddings, cluster_logs, group_anomalies, detect_log_anomalies
 from db.sqlite_store import (
     save_wf_logs_embeddings, 
     load_wf_logs_embeddings, 
@@ -10,14 +10,12 @@ from db.sqlite_store import (
     save_wf_logs_cluster_summary, 
     load_wf_logs_cluster_summary, 
     save_wf_logs_cluster_anomalies,
-    save_wf_logs_cluster_anomalies_grouped
+    save_wf_logs_cluster_anomalies_grouped,
+    save_log_anomalies
 )
 from ml.workflow_logs.wf_logs_explanations import extract_cluster_themes
 from ai.workflow_logs.wf_logs_ai_explanations import build_ai_prompt, analyze_clusters
-from config.settings import USE_CACHED_EMBEDDINGS, USE_CACHED_CLUSTER_SUMMARY
-
-# grouped_logs_df = detect_log_anomalies(grouped_logs_df)
-# summarize_clusters(grouped_logs_df)
+from config.settings import USE_CACHED_EMBEDDINGS, USE_CACHED_CLUSTER_SUMMARY, AI_ANALYZE_LOG_ANOMALIES
 
 def run_wf_logs_pipeline():
 
@@ -43,6 +41,9 @@ def run_wf_logs_pipeline():
     # grouped_logs_df = job_instance_id(grouped by), job_id, job_name, job_description, clean_log(list), 
     #   execution_log_text(clean_log list to string), embeddings(list)
     
+    grouped_log_anomalies_df = detect_log_anomalies(grouped_logs_df)
+    save_log_anomalies(grouped_log_anomalies_df)
+
     grouped_logs_df = cluster_logs(grouped_logs_df)
     # grouped_logs_df = job_instance_id(grouped by), job_id, job_name, job_description, clean_log(list), 
     #   execution_log_text(clean_log list to string), embeddings(list), cluster_id, cluster_probability
@@ -83,24 +84,27 @@ def run_wf_logs_pipeline():
     save_wf_logs_cluster_anomalies(anomalies_df)
 
     anomalies_df, anomaly_representatives = group_anomalies(anomalies_df)
-
-
     # anomalies_df = job_instance_id(grouped by), job_id, job_name, job_description, clean_log(list), 
     #   execution_log_text(clean_log list to string), embeddings(list), cluster_id, cluster_probability, 
     #   analysis_run_id, scored_at, log_length, log_count, anomaly_group_id
 
     save_wf_logs_cluster_anomalies_grouped(anomalies_df)
-    
-    # prompt = build_ai_prompt(
-    #     grouped_logs_df["job_name"].iloc[0],
-    #     grouped_logs_df["job_description"].iloc[0],
-    #     cluster_summary_df,
-    #     anomalies_df
-    # )
 
-    # analysis = analyze_clusters(prompt)
+    # print(anomalies_df["anomaly_group_id"].value_counts())
 
-    # print(analysis)
+    if AI_ANALYZE_LOG_ANOMALIES:
+        for group_id, group_df in anomalies_df.groupby("anomaly_group_id"):
 
-    print(anomalies_df["anomaly_group_id"].value_counts())
+            group_size = len(group_df)
+
+            if group_size >= 20:
+                continue
+
+            prompt = build_ai_prompt(group_df)
+
+            analysis = analyze_clusters(prompt)
+
+            print(f"AI analysis for group {group_id}")
+            print(analysis)
+
     return logs_df

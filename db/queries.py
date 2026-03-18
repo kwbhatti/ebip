@@ -1,6 +1,6 @@
 EXECUTION_FEATURE_QUERY = """
 SELECT
-    ji.int_job_instance_id,
+    ji.int_job_instance_id as job_instance_id,
 
     DATEDIFF(SECOND, ji.dte_start_time, ji.dte_end_time) AS job_duration_seconds,
 
